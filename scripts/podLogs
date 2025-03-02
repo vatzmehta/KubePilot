@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# Check if a namespace argument is provided
+if [ -z "$1" ]; then
+    echo "Usage: $0 <namespace>"
+    exit 1
+fi
+
+NAMESPACE=$1
+JSON_LOGS=$2
+# DEVSTACK_LABEL="your-label"  # Uncomment and Replace, only if env-variable is unset, with the actual label to filter pods
+
+# Get the list of pods matching the label
+echo "Fetching pods in namespace: $NAMESPACE with label: $DEVSTACK_LABEL"
+PODS=$(kubectl get pods -n "$NAMESPACE" | grep "$DEVSTACK_LABEL" | awk '{print $1}')
+
+# Check if any pods were found
+if [ -z "$PODS" ]; then
+    echo "No pods found with label $DEVSTACK_LABEL in namespace $NAMESPACE"
+    exit 1
+fi
+
+# Display the list of pods and prompt user to select one
+echo "Available pods:"
+echo "$PODS"
+read -p "Enter the pod name to view logs (press Enter to use the first pod): " POD_NAME
+
+# Set default pod if none selected
+if [ -z "$POD_NAME" ]; then
+    POD_NAME=$(echo "$PODS" | head -n 1)
+    echo "No pod selected, using default: $POD_NAME"
+fi
+
+# Stream logs from the selected pod
+echo "Streaming logs from pod: $POD_NAME"
+if [ -n "$JSON_LOGS" ]; then
+    kubectl logs -f "$POD_NAME" -n "$NAMESPACE" | jq -R '. as $line | try (fromjson) catch $line'
+else
+    kubectl logs -f "$POD_NAME" -n "$NAMESPACE"
+fi

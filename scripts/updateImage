@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# Check if the required inputs are provided
+if [ "$#" -ne 3 ]; then
+    echo "Usage: $0 <instance-name> <namespace> <imageID>"
+    exit 1
+fi
+
+# Input variables
+INSTANCE_NAME=$1
+NAMESPACE=$2
+IMAGE_ID=$3
+
+# Get deployment details in a structured way
+DEPLOYMENTS_JSON=$(kubectl get deployments -n "$NAMESPACE" -o json)
+
+# Validate if deployments exist
+if [ -z "$DEPLOYMENTS_JSON" ]; then
+    echo "No deployments found in namespace '$NAMESPACE'"
+    exit 1
+fi
+
+# Loop through matching deployments
+echo "$DEPLOYMENTS_JSON" | jq -r \
+    '.items[] | select(.metadata.name | contains("'"$INSTANCE_NAME"'")) |
+    .metadata.name as $dep_name |
+    .spec.template.spec.containers[] |
+    "\($dep_name) \(.name) \(.image)"' | while read -r DEPLOYMENT_NAME CONTAINER_NAME IMAGE; do
+
+    # Extract image repository and current tag
+    IMAGE_PREFIX=$(echo "$IMAGE" | awk -F ':' '{print $1}')
+    CURRENT_TAG=$(echo "$IMAGE" | awk -F ':' '{print $2}')
+
+    # Validate extracted values
+    if [ -z "$IMAGE_PREFIX" ] || [ -z "$CURRENT_TAG" ]; then
+        echo "Failed to parse image details for deployment '$DEPLOYMENT_NAME'. Skipping."
+        continue
+    fi
+
+    # Construct new image by replacing only the tag
+    NEW_IMAGE="${IMAGE_PREFIX}:${IMAGE_ID}"
+
+    # Update image in deployment
+    echo "Updating deployment '$DEPLOYMENT_NAME', container '$CONTAINER_NAME' to image '$NEW_IMAGE'..."
+    kubectl set image deployment/"$DEPLOYMENT_NAME" "$CONTAINER_NAME"="$NEW_IMAGE" -n "$NAMESPACE"
+
+    # Check the result of the kubectl command
+    if [ $? -eq 0 ]; then
+        echo "Successfully updated image for deployment '$DEPLOYMENT_NAME'."
+    else
+        echo "Failed to update image for deployment '$DEPLOYMENT_NAME'."
+    fi
+
+done
+
+# Display updated deployments
+echo "Displaying updated deployments:"
+kubectl get deployments -n "$NAMESPACE" -o wide
