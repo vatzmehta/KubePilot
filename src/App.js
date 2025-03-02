@@ -175,7 +175,7 @@ const parseDeployments = (output, label) => {
       setIsLabelSet(true);
       
       // Get all deployments across namespaces with the label
-      const command = `kubectl get deployments --all-namespaces -o custom-columns="NAMESPACE:.metadata.namespace,DEPLOYMENT:.metadata.name,READY:.status.readyReplicas/.status.replicas,IMAGE:.spec.template.spec.containers[0].image" | grep ${devstackLabel}`;
+      const command = `kubectl get deployments --all-namespaces -o custom-columns="NAMESPACE:.metadata.namespace,DEPLOYMENT:.metadata.name,READY:.status.readyReplicas/.status.replicas,IMAGE:.spec.template.spec.containers[0].image" | awk -v label="${devstackLabel}" '$2 ~ label'`;
       const output = await executeCommand(command);
       
       if (output) {
@@ -251,10 +251,13 @@ const parseDeployments = (output, label) => {
           const namespace = parts[0];
           const podName = parts[1];
           const status = parts[2];
+
+          const message = `Pod ${podName} in namespace ${namespace} is in ${status} state`;
+          showBrowserNotification("Pod Issue Detected", message);
           
           newNotifications.push({
             id: Date.now() + index,
-            message: `Pod ${podName} in namespace ${namespace} is in ${status} state`,
+            message: message,
             severity: 'error',
             timestamp: new Date().toLocaleTimeString()
           });
@@ -294,16 +297,31 @@ const checkDeploymentHealth = async () => {
 
     console.log("Missing Deployments:", missingDeployments);
 
-    if (missingDeployments.length > 0) {
-      const newNotifications = missingDeployments.map(d => ({
-        id: Date.now(),
-        message: `Deployment ${d.name} in namespace ${d.namespace} is missing!`,
-        severity: "error",
-        timestamp: new Date().toLocaleTimeString(),
-      }));
+    // if (missingDeployments.length > 0) {
+    //   const newNotifications = missingDeployments.map(d => ({
+    //     id: Date.now(),
+    //     message: `Deployment ${d.name} in namespace ${d.namespace} is missing!`,
+    //     severity: "error",
+    //     timestamp: new Date().toLocaleTimeString(),
+    //   }));
 
+    //   setNotifications(prev => [...newNotifications, ...prev]);
+    // }
+    if (missingDeployments.length > 0) {
+      const newNotifications = missingDeployments.map(d => {
+        showBrowserNotification("Deployment Missing", `Deployment ${d.name} in ${d.namespace} is missing!`);
+        return {
+          id: Date.now(),
+          message: `Deployment ${d.name} in namespace ${d.namespace} is missing!`,
+          severity: "error",
+          timestamp: new Date().toLocaleTimeString(),
+        };
+      });
+    
       setNotifications(prev => [...newNotifications, ...prev]);
     }
+
+
   }
 };
 
@@ -406,6 +424,26 @@ const checkDeploymentHealth = async () => {
     
     return () => clearInterval(interval);
   }, [isLabelSet, devstackLabel]);
+
+  useEffect(() => {
+  if ("Notification" in window) {
+    Notification.requestPermission().then(permission => {
+      if (permission !== "granted") {
+        console.warn("Browser notifications are disabled.");
+      }
+    });
+  }
+}, []);
+
+  const showBrowserNotification = (title, message) => {
+  if ("Notification" in window && Notification.permission === "granted") {
+    new Notification(title, {
+      body: message,
+      icon: "/favicon.ico", // You can replace this with your app's logo
+    });
+  }
+};
+
 
   return (
     <div className="flex flex-col min-h-screen">
