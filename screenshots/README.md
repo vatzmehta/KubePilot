@@ -1,8 +1,8 @@
 # Welcome Page
-![img.png](img.png)
+![img_12.png](img_12.png)
 
 # Home Page
-![img_4.png](img_4.png)
+![img_14.png](img_14.png)
 
 # Notifications
 ![img_3.png](img_3.png)
