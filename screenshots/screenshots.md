@@ -21,3 +21,6 @@
 
 # CLI JSON parsed Logs
 ![img_9.png](img_9.png)
+
+# CLI Image Update
+![img_11.png](img_11.png)

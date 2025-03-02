@@ -8,7 +8,8 @@ Main intention is to use this for your local/staging setup where alerting is not
 3. Update images
 4. Visualize logs
 5. In-browser notifications
-6. Json Parsed Logs via CLI
+6. Json Parsed Logs via CLI: No need to run 2 different commands to get pod logs. Just one is enough. (Height of laziness? 😅)
+7. CLI based image update (Beta) : No need to remember kubectl commands. Just run a single command to update the image.
 
 # Screenshots
 Refer to [screenshots/screenshots.md](screenshots/screenshots.md)
@@ -70,3 +71,12 @@ Example:
 podLogs api 
 ```
 
+
+## CLI Update Image Steps
+```
+updateImage <devstack-label> <namespace> <imageID>
+```
+Example:
+```
+updateImage vatzmehta3 api ffac10928f40fb53549ed0fbcea750cebea99b47
+```
