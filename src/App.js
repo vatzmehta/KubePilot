@@ -10,6 +10,7 @@ import { Separator } from './components/ui/separator';
 import { Switch } from './components/ui/switch';
 import { Label } from './components/ui/label';
 import { Textarea } from "./components/ui/textarea";
+import { useRef } from "react";
 
 // import React, { useState, useEffect } from 'react';
 // import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -165,7 +166,8 @@ const parseDeployments = (output, label) => {
     }
   };
 
-  // const [initialDeployments, setInitialDeployments] = useState([]);
+  const [initialDeployments, setInitialDeployments] = useState([]);
+  const initialDeploymentsRef = useRef([]); // Store initial deployments
 
   // Handle devstack label submission
   const handleLabelSubmit = async () => {
@@ -179,6 +181,11 @@ const parseDeployments = (output, label) => {
       if (output) {
         const parsedDeployments = parseDeployments(output, devstackLabel);
         setDeployments(parsedDeployments);
+        initialDeploymentsRef.current = parsedDeployments; 
+        // setInitialDeployments(parsedDeployments); // Store initial state
+        // console.log("Initial Deployments:", parsedDeployments);
+        console.log("Stored Initial Deployments:", initialDeploymentsRef.current);
+
         
         // Generate deployment options for the dropdown
         const deploymentOpts = parsedDeployments.map(d => ({
@@ -186,7 +193,6 @@ const parseDeployments = (output, label) => {
           label: `${d.name} (${d.namespace})`
         }));
         setDeploymentOptions(deploymentOpts);
-        // setInitialDeployments(parsedDeployments); // Store initial state
         
         // Get pods to populate the logs dropdown
         const podsCommand = `kubectl get pods --all-namespaces -o custom-columns="NAMESPACE:.metadata.namespace,NAME:.metadata.name,STATUS:.status.phase" | grep ${devstackLabel}`;
@@ -225,6 +231,7 @@ const parseDeployments = (output, label) => {
         
         // Check for problematic pods
         checkPodHealth();
+
       }
     }
   };
@@ -259,6 +266,48 @@ const parseDeployments = (output, label) => {
       }
     }
   };
+
+
+const checkDeploymentHealth = async () => {
+  console.log("Running Deployment Health Check...");
+
+  const command = `kubectl get deployments --all-namespaces -o custom-columns="NAMESPACE:.metadata.namespace,DEPLOYMENT:.metadata.name" | grep ${devstackLabel}`;
+  const output = await executeCommand(command);
+
+  if (output) {
+    const currentDeployments = output
+      .trim()
+      .split("\n")
+      .map(line => {
+        const parts = line.split(/\s+/);
+        return parts.length >= 2 ? { namespace: parts[0], name: parts[1] } : null;
+      })
+      .filter(Boolean);
+
+    console.log("Current Deployments:", currentDeployments);
+    console.log("Initial Deployments from Ref:", initialDeploymentsRef.current);
+
+    // ✅ Corrected: Use ref instead of state
+    const missingDeployments = initialDeploymentsRef.current.filter(
+      d => !currentDeployments.some(cd => cd.namespace === d.namespace && cd.name === d.name)
+    );
+
+    console.log("Missing Deployments:", missingDeployments);
+
+    if (missingDeployments.length > 0) {
+      const newNotifications = missingDeployments.map(d => ({
+        id: Date.now(),
+        message: `Deployment ${d.name} in namespace ${d.namespace} is missing!`,
+        severity: "error",
+        timestamp: new Date().toLocaleTimeString(),
+      }));
+
+      setNotifications(prev => [...newNotifications, ...prev]);
+    }
+  }
+};
+
+
 
   // Handle pod selection for logs
   const handlePodSelect = async (value) => {
@@ -352,6 +401,7 @@ const parseDeployments = (output, label) => {
     
     const interval = setInterval(() => {
       checkPodHealth();
+      checkDeploymentHealth();
     }, 30000); // Check every 30 seconds
     
     return () => clearInterval(interval);
