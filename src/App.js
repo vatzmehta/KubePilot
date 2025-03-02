@@ -450,7 +450,7 @@ const checkDeploymentHealth = async () => {
       {/* Header */}
       <header className="bg-slate-800 text-white p-4">
         <div className="flex justify-between items-center">
-          <h1 className="text-xl font-bold">Kubernetes Management Dashboard</h1>
+          <h1 className="text-xl font-bold">KubePilot</h1>
           
           {isLabelSet && (
             <div className="flex items-center space-x-4">
