@@ -2,7 +2,8 @@
 
 # Check if a namespace argument is provided
 if [ -z "$1" ]; then
-    echo "Usage: $0 <namespace>"
+#    echo "Usage: $0 <namespace>"
+    echo "Usage: $0 <namespace> [parse_json (optional, true/false)]"
     exit 1
 fi
 
