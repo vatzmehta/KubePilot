@@ -15,3 +15,9 @@
 
 # Pod Logs Page
 ![img_7.png](img_7.png)
+
+# CLI Pod Logs 
+![img_10.png](img_10.png)
+
+# CLI JSON parsed Logs
+![img_9.png](img_9.png)
