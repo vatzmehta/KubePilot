@@ -368,7 +368,7 @@ const checkDeploymentHealth = async () => {
   const [namespace, instanceName] = selectedDeployment.split('/');
 
   // Execute the updateImage script with the required parameters
-  const command = `/usr/local/bin/updateImage ${devstackLabel} ${namespace} ${newImageId}`;
+  const command = `updateImage ${devstackLabel} ${namespace} ${newImageId}`;
   const output = await executeCommand(command);
 
   if (output) {

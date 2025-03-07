@@ -10,8 +10,8 @@ app.post('/api/execute-command', (req, res) => {
   const { command } = req.body;
   
   // Security check - only allow kubectl and helmfile commands
-  if (!command.startsWith('kubectl') && !command.startsWith('helmfile')) {
-    return res.status(403).json({ error: 'Only kubectl and helmfile commands are allowed' });
+  if (!command.startsWith('kubectl') && !command.startsWith('helmfile') && !command.startsWith('updateImage')) {
+    return res.status(403).json({ error: 'Only kubectl, updateImage and helmfile commands are allowed' });
   }
 
   exec(command, (error, stdout, stderr) => {
