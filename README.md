@@ -12,7 +12,7 @@ Main intention is to use this for your local/staging setup where alerting is not
 7. CLI based image update (Beta) : No need to remember kubectl commands. Just run a single command to update the image.
 
 # Screenshots
-Refer to [screenshots/screenshots.md](screenshots/screenshots.md)
+Refer to [screenshots/README.md](screenshots/README.md)
 
 # How to run
 
