@@ -729,7 +729,12 @@ const checkDeploymentHealth = async () => {
                   <CardHeader>
                     <CardTitle>Update Deployment Image</CardTitle>
                     <CardDescription>
-                      Change the image for deployments with label suffix: <strong>{devstackLabel}</strong>
+                      Change the image for deployments with label suffix: <strong>{devstackLabel}</strong> <br />
+
+                      <br />
+
+
+                      <strong>⚠️ This is in beta, for few deployments if there exists a prefix key before image-id like api_[image_id] then prefix needs to be added along with commit-id</strong>
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -763,7 +768,7 @@ const checkDeploymentHealth = async () => {
                             <Label htmlFor="new-image">New Image ID</Label>
                             <Input 
                               id="new-image"
-                              placeholder="e.g. frontend:v1.2.4" 
+                              placeholder="e.g. commit-id" 
                               value={newImageId}
                               onChange={(e) => setNewImageId(e.target.value)}
                             />
