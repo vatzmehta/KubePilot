@@ -17,17 +17,14 @@ Refer to [screenshots/README.md](screenshots/README.md)
 # How to run
 
 ## Prerequisites
-1. node
-2. npm
+1. node (v23.1.0)
+2. npm (10.9.0)
 3. kubectl
 4. Make sure to set your $DEVSTACK_LABEL in environment variables. 
 
 ## Steps
 1. Clone the repository
-2. Move Scripts to any place which is in your PATH. (in this case, path is /usr/local/bin ⚠️ sudo access required️)
-```
-cp scripts/* /usr/local/bin
-```
+2. Add current directory to $PATH
 3. Check if scripts are accessible
 ```
 which updateImage
